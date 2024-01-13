@@ -8,10 +8,10 @@ class CountriesController < ApplicationController
   end
 
   def search
-    if filter_params[:alpha_2_code].present? || filter_params[:alpha_3_code].present?
+    if filtered_params[:alpha_2_code].present? || filtered_params[:alpha_3_code].present?
       # If either alpha_2_code or alpha_3_code is present, return a single country
       render_single_country
-    elsif filter_params[:currency].present?
+    elsif filtered_params[:currency].present?
       # If currency is present, return a collection of countries with the same currency
       render_filtered_countries
     else
@@ -30,7 +30,7 @@ class CountriesController < ApplicationController
   private
 
   def render_single_country
-    country = Country.find_by(filter_params)
+    country = Country.find_by(filtered_params)
     if country
       render json: { country: country }
     else
@@ -39,8 +39,8 @@ class CountriesController < ApplicationController
   end
 
   def render_filtered_countries
-    countries = Country.where(filter_params).limit(per_page_records).offset(offset)
-    render json: { countries: countries, total_count: total_count }
+    countries = Country.where(filtered_params).limit(per_page_records).offset(offset)
+    render json: { countries: countries, total_count: total_country_count }
   end
 
   def load_country
@@ -49,12 +49,8 @@ class CountriesController < ApplicationController
     render_missing_country_message unless @country
   end
 
-  def filter_params_present?
-    filter_params.present?
-  end
-
-  def filter_params
-    params.slice(:alpha_2_code, :alpha_3_code, :currency).compact.presence
+  def filtered_params
+    params.permit(:alpha_2_code, :alpha_3_code, :currency)
   end
 
   def total_country_count
