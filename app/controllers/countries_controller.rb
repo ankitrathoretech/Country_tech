@@ -2,7 +2,7 @@ class CountriesController < ApplicationController
   before_action :load_country, only: [:destroy]
 
   def index
-    countries = Country.paginate(page: page, per_page: per_page_records)
+    countries = Country.all.limit(per_page_records).offset(offset)
 
     render json: { countries: countries, total_count: total_country_count }
   end
@@ -39,7 +39,7 @@ class CountriesController < ApplicationController
   end
 
   def render_filtered_countries
-    countries = Country.where(filter_params).paginate(page: page, per_page: per_page_records)
+    countries = Country.where(filter_params).limit(per_page_records).offset(offset)
     render json: { countries: countries, total_count: total_count }
   end
 
