@@ -1,15 +1,18 @@
 class CountriesController < ApplicationController
   before_action :get_country, only: [:destroy]
 
+  DEFAULT_PER_PAGE_RECORDS = 10
+  DEFAULT_PAGE_NUMBER = 1
+
   def index
-    @countries = Country.all
+    @countries = Country.paginate(page: page, per_page: per_page_records)
 
     render json: { countries: @countries, total_count: @countries.count }
   end
 
   def search
     if filter_keys_present?
-      @countries = Country.where(filtered_params)
+      @countries = Country.where(filtered_params).paginate(page: page, per_page: per_page_records)
 
       render json: { countries: @countries, total_count: @countries.count }
     else
@@ -50,5 +53,13 @@ class CountriesController < ApplicationController
 
   def render_missing_country_message
     render json: { message: "Country not found for ID #{params[:id]}" }, status: 404
+  end
+
+  def page
+    params[:page] || DEFAULT_PAGE_NUMBER
+  end
+
+  def per_page_records
+    params[:per_page] || DEFAULT_PER_PAGE_RECORDS
   end
 end
