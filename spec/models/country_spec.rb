@@ -97,4 +97,59 @@ RSpec.describe Country, type: :model do
       expect(Country.first).to eq(undeleted_country)
     end
   end
+
+  describe "callbacks" do
+    context '#format_the_attributes' do
+      it "converts alpha_2_code, alpha_3_code, and currency to uppercase" do
+        country = build(:country, alpha_2_code: "ab", alpha_3_code: "abc", currency: "usd")
+
+        # Before validation, the attributes should be in lowercase
+        expect(country.alpha_2_code).to eq("ab")
+        expect(country.alpha_3_code).to eq("abc")
+        expect(country.currency).to eq("usd")
+
+        # Trigger validation
+        country.valid?
+
+        # After validation, the attributes should be converted to uppercase
+        expect(country.alpha_2_code).to eq("AB")
+        expect(country.alpha_3_code).to eq("ABC")
+        expect(country.currency).to eq("USD")
+      end
+
+      it "leaves attributes as they are if they are already in uppercase" do
+        country = build(:country, alpha_2_code: "AB", alpha_3_code: "ABC", currency: "USD")
+
+        # Before validation, the attributes should be in uppercase
+        expect(country.alpha_2_code).to eq("AB")
+        expect(country.alpha_3_code).to eq("ABC")
+        expect(country.currency).to eq("USD")
+
+        # Trigger validation
+        country.valid?
+
+        # The attributes should remain in uppercase
+        expect(country.alpha_2_code).to eq("AB")
+        expect(country.alpha_3_code).to eq("ABC")
+        expect(country.currency).to eq("USD")
+      end
+
+      it "leaves attributes as they are if they are nil" do
+        country = build(:country, alpha_2_code: nil, alpha_3_code: nil, currency: nil)
+
+        # Before validation, the attributes should be nil
+        expect(country.alpha_2_code).to be_nil
+        expect(country.alpha_3_code).to be_nil
+        expect(country.currency).to be_nil
+
+        # Trigger validation
+        country.valid?
+
+        # The attributes should remain nil
+        expect(country.alpha_2_code).to be_nil
+        expect(country.alpha_3_code).to be_nil
+        expect(country.currency).to be_nil
+      end
+    end
+  end
 end

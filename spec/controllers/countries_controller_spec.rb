@@ -11,7 +11,7 @@ RSpec.describe CountriesController, type: :controller do
       country = create(:country)
       get :index
       expect(response).to be_successful
-      json_response = JSON.parse(response.body).with_indifferent_access
+      json_response = parse_json(response.body)
 
       expect(json_response[:countries].count).to eq(1)
       expect(json_response[:total_count]).to eq(1)
@@ -25,7 +25,7 @@ RSpec.describe CountriesController, type: :controller do
       get :index, params: { per_page: 2, page: 1 }
 
       expect(response).to be_successful
-      json_response = JSON.parse(response.body).with_indifferent_access
+      json_response = parse_json(response.body)
 
       expect(json_response[:countries].count).to eq(2)
       expect(json_response[:total_count]).to eq(3)
@@ -34,7 +34,7 @@ RSpec.describe CountriesController, type: :controller do
       get :index, params: { per_page: 2, page: 2 }
 
       expect(response).to be_successful
-      json_response = JSON.parse(response.body).with_indifferent_access
+      json_response = parse_json(response.body)
       expect(json_response[:countries].count).to eq(1)
       expect(json_response[:total_count]).to eq(3)
     end
@@ -46,14 +46,14 @@ RSpec.describe CountriesController, type: :controller do
         country = create(:country)
         get :search, params: { alpha_2_code: country.alpha_2_code }
         expect(response).to be_successful
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
         expect(json_response[:country][:alpha_2_code]).to eq(country.alpha_2_code)
       end
 
       it 'returns a 404 error if country not found' do
         get :search, params: { alpha_2_code: 'XX' } # Non-existent code
 
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
 
         expect(json_response[:status]).to eq(404)
         expect(json_response[:error]).to eq("Country not found for given filter parameters")
@@ -65,14 +65,14 @@ RSpec.describe CountriesController, type: :controller do
         country = create(:country)
         get :search, params: { alpha_3_code: country.alpha_3_code }
         expect(response).to be_successful
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
         expect(json_response[:country][:alpha_3_code]).to eq(country.alpha_3_code)
       end
 
       it 'returns a 404 error if country not found' do
         get :search, params: { alpha_3_code: 'XXA' } # Non-existent code
 
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
 
         expect(json_response[:status]).to eq(404)
         expect(json_response[:error]).to eq("Country not found for given filter parameters")
@@ -88,14 +88,14 @@ RSpec.describe CountriesController, type: :controller do
         get :search, params: { currency: currency }
 
         expect(response).to be_successful
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
         expect(json_response[:countries].count).to eq(2)
       end
 
       it 'returns an empty collection if no countries have the same currency' do
         get :search, params: { currency: 'XXX' } # Non-existent currency
         expect(response).to be_successful
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
         expect(json_response[:countries].count).to eq(0)
       end
 
@@ -107,7 +107,7 @@ RSpec.describe CountriesController, type: :controller do
         get :search, params: { currency: currency, per_page: 2, page: 1 }
 
         expect(response).to be_successful
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
         expect(json_response[:countries].count).to eq(2)
         expect(json_response[:total_count]).to eq(5)
 
@@ -115,7 +115,7 @@ RSpec.describe CountriesController, type: :controller do
         get :search, params: { currency: currency, per_page: 2, page: 2 }
 
         expect(response).to be_successful
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
         expect(json_response[:countries].count).to eq(2)
       end
     end
@@ -124,7 +124,7 @@ RSpec.describe CountriesController, type: :controller do
       it 'returns a 400 error with a missing filter message' do
         get :search
 
-        json_response = JSON.parse(response.body).with_indifferent_access
+        json_response = parse_json(response.body)
 
         expect(json_response[:status]).to eq(400)
         expect(json_response[:error]).to eq("At least one filter is required: alpha_2_code, alpha_3_code, or currency")
@@ -148,10 +148,14 @@ RSpec.describe CountriesController, type: :controller do
 
     it 'returns an error response when country not found' do
       delete :destroy, params: { id: 'nonexistent_id' }
-      json_response = JSON.parse(response.body).with_indifferent_access
+      json_response = parse_json(response.body)
 
       expect(json_response[:status]).to eq(404)
       expect(json_response[:error]).to eq("Country not found for ID nonexistent_id")
     end
+  end
+
+  def parse_json(response_body)
+    JSON.parse(response_body).with_indifferent_access
   end
 end
